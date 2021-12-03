@@ -5,6 +5,8 @@ class Parameters {
 	const COLUMNS = ['id' , 'nama', 'kalori', 'protein', 'lemak'];
 	const POPULATION_SIZE = 10;
 	const MIN_FIT = 0.003;
+	const STOPPING_VALUE = 0.002;
+	const CROSSOVER_RATE = 0.8;
 }
 
 class Catalogue {
@@ -24,17 +26,6 @@ class Catalogue {
 		foreach ($raw_data as $listOfRawBahan) {
 			$collectionOfListBahan[] = $this->createProductColumn(explode(", ", $listOfRawBahan));
 		}
-
-		// foreach ($collectionOfListBahan as $listOfRawBahan) {
-		// 	print_r($listOfRawBahan);
-		// 	echo "<br>";
-		// }
-
-		// return [
-		// 	'bahan' => $collectionOfListBahan,
-		// 	'gen_length' => count($collectionOfListBahan)
-		// ];
-		// var_dump($collectionOfListBahan);
 		return $collectionOfListBahan;
 	}
 }
@@ -70,18 +61,9 @@ class Individu {
 
 class Population {
 	
-	// function createIndividu() {
-	// 	$catalogue = new Catalogue;
-	// 	$lengthOfGen = $catalogue->bahan($parameters)['gen_length'];
-	// 	for ($i = 0; $i <= $lengthOfGen-1; $i++) {
-	// 		$ret[] = rand(0, 1);
-	// 	}
-	// 	return $ret;
-	// }
-
 	function createRandomPopulation() {
 		$individu = new Individu;
-		for ($i = 1; $i <= Parameters::POPULATION_SIZE; $i++) {
+		for ($i = 0; $i < Parameters::POPULATION_SIZE; $i++) {
 			$ret[] = $individu->createRandomIndividu();
 		}
 		// foreach ($ret as $key => $val) {
@@ -108,17 +90,6 @@ class Fitness {
 	}
 
 	function calculateFitnessValue($individu) {
-		// print_r($individu);
-		// print_r($this->selectingItems($individu));
-		// $indv = $this->selectingItems($individu);
-		// var_dump($individu);
-		// foreach ($indv as $listOfGenKey => $listOfGen) {
-		// 	echo "<br><br>gen-".$listOfGenKey;
-		// 	echo "<br>Kalori = ".$listOfGen['selectedKalori'];
-		// 	echo "<br>Protein = ".$listOfGen['selectedProtein'];
-		// 	echo "<br>Lemak = ".$listOfGen['selectedLemak'];
-		// }
-
 		$jk = "L";
 		$usia = 10;
 		$bb = 15;
@@ -136,13 +107,13 @@ class Fitness {
 		$bilkecil = rand(1,5);
 		# a = jumlah kalori pada bahan makanan
 		$a = array_sum(array_column($this->selectingItems($individu), 'selectedKalori'));
-		echo "<br>a = ".$a;
+		echo "a = ".$a;
 		# b = jumlah protein pada bahan makanan
 		$b = array_sum(array_column($this->selectingItems($individu), 'selectedProtein'));
-		echo "<br>b = ".$b;
+		echo "&nbsp;b = ".$b;
 		# c = jumlah lemak pada bahan makanan
 		$c = array_sum(array_column($this->selectingItems($individu), 'selectedLemak'));
-		echo "<br>c = ".$c;
+		echo "&nbsp;c = ".$c;
 		# p = Kebutuhan Energi
 		$p = $amb * $fAkt * $fSts;
 		# q = Kebutuhan Protein
@@ -152,11 +123,44 @@ class Fitness {
 
 		# Fitness
 		$fitness = 1/((abs($p - $a) + abs($q - $b) + abs($r - $c)) + $bilkecil);
-		echo "<br> bilkecil = ".$bilkecil;
+		echo "&nbsp;bilkecil = ".$bilkecil;
 		echo "<br> fitness = ".$fitness;
 		return $fitness;
-		// exit();
+	}
 
+	function searchBestIndividu($fits) {
+		foreach ($fits as $key => $val) {
+			// echo "<br>indvKey ".$val['selectedIndividuKey']." fitVal ".$val['fitnessValue'];
+			$ret[] = [
+				'individuKey' => $val['selectedIndividuKey'],
+				'fitnessValue' => $val['fitnessValue']
+			];
+		}
+		if (count(array_unique(array_column($ret, 'fitnessValue'))) === 1) {
+			$index = rand(0, count($ret) - 1);
+		} else {
+			$maxFitnessValue = max(array_column($ret, 'fitnessValue'));
+			$index = array_search($maxFitnessValue, array_column($ret, 'fitnessValue'));
+		}
+		return $ret[$index];
+	}
+
+	function isFound($fits) {
+		$bestFitnessValue = $this->searchBestIndividu($fits)['fitnessValue'];
+		echo "&nbspBEST = ".$bestFitnessValue;
+		$fitnessValues = [];
+		foreach ($fits as $key => $val) {
+			array_push($fitnessValues, $val['fitnessValue']);
+			$fitnessValue = $val['fitnessValue'];
+			$residual = $bestFitnessValue - $fitnessValue;
+			if ($residual <= Parameters::STOPPING_VALUE && $residual > 0) {
+			}
+		}
+		rsort($fitnessValues);
+		// var_dump($sorted);
+		for($x = 0; $x < count($fits); $x++) {
+			return TRUE;
+		}
 	}
 
 	function isFit($fitnessValue) {
@@ -179,8 +183,99 @@ class Fitness {
 			// echo "<br>Fitness Value = ".$fitnessValue;
 			if ($this->isFit($fitnessValue)) {
 				echo "(Fit)";
+				$fits[] = [
+					'selectedIndividuKey' => $listOfIndividuKey,
+					'fitnessValue' => $fitnessValue,
+				];
 			} else {
 				echo "(Not Fit)";
+			}
+		}
+		if ($this->isFound($fits)) {
+			echo " found";
+		} else {
+			echo " >> NEXT GEN";
+		}
+	}
+}
+
+class Crossover {
+	public $populations;
+
+	function __construct($populations) {
+		$this->populations = $populations;
+	}
+
+	function randomZeroToOne() {
+		return (float) rand() / (float) getrandmax();
+	}
+
+	function generateCrossover(){
+		for ($i = 0; $i < Parameters::POPULATION_SIZE; $i++) { 
+			$randomZeroToOne = $this->randomZeroToOne();
+			if ($randomZeroToOne < Parameters::CROSSOVER_RATE) {
+				$parents[$i] = $randomZeroToOne;
+			}
+		}
+		foreach (array_keys($parents) as $key) {
+			foreach (array_keys($parents) as $subkey) {
+				if ($key !== $subkey) {
+					$ret[] = [$key, $subkey];
+				}
+			}
+			array_shift($parents);
+		}
+		return $ret;
+	}
+
+	function offspring($parent1, $parent2, $r_cross) {
+		$c1 = $parent1;
+		$c2 = $parent2;
+		$randomZeroToOne = $this->randomZeroToOne();
+		if ($randomZeroToOne < $r_cross) {
+			$cutPoint = (int) rand(1, count($parent1));
+			$c1 =  array_merge(array_slice($parent1, 0, $cutPoint), array_slice($parent2, $cutPoint));
+			$c2 = array_merge(array_slice($parent2, 0, $cutPoint), array_slice($parent1, $cutPoint));
+			return [$c1, $c2];
+		}
+	}
+
+	function cutPointRandom() {
+		$lengthOfGen = 6;
+		return rand(0, $lengthOfGen-1);
+	}
+
+	function crossover() {
+		$listOfGen = [];
+		$cutPointIndex = $this->cutPointRandom();
+		foreach ($this->populations as $listOfIndividuKey => $listOfIndividu) {
+			foreach ($listOfIndividu as $individuKey) {
+				array_push($listOfGen, $individuKey['id']-1);
+			}
+		}
+		for ($i = 0; $i < count($listOfGen); $i+=6) {
+			$individu[] = array_slice($listOfGen, $i, 6);
+		}
+		for ($i=0; $i < Parameters::POPULATION_SIZE; $i+=2) { 
+			echo "<br><br>Parents :<br>";
+			foreach ($individu[$i] as $key) {
+				echo $key;
+			}
+			echo "><";
+			foreach ($individu[$i+1] as $key) {
+				echo $key;
+			}
+			echo "<br>Offspring :<br>";
+			$offspring = $this->offspring($individu[$i], $individu[$i+1], Parameters::CROSSOVER_RATE);
+			// echo "<br>"; print_r($offspring);
+			if ($offspring != NULL){
+				foreach ($offspring[0] as $key) {
+					echo $key;
+				}
+				echo "><";
+				foreach ($offspring[1] as $key) {
+					echo $key;
+				}
 			}
 		}
 	}
@@ -202,6 +297,9 @@ $population = $initialPopulation->createRandomPopulation();
 echo "<br>Fitness<br>";
 $fitness = new Fitness;
 $fitness->fitnessEvaluation($population);
+
+$crossover = new Crossover($population);
+$crossover->crossover();
 
 // $individu = new Individu;
 // print_r($individu->createRandomIndividu());
