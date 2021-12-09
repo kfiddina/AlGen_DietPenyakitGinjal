@@ -4,20 +4,10 @@ class Parameters {
 	const FILE_NAME = 'bahan_makanan.txt';
 	const COLUMNS = ['id' , 'nama', 'kalori', 'protein', 'lemak'];
 	const POPULATION_SIZE = 10;
-	const MIN_FIT = 0.003;
+	const MIN_FIT = 0.0001;
 	const STOPPING_VALUE = 0.003;
 	const CROSSOVER_RATE = 0.9;
-	const DATAPASIEN = ['id' , 'nama', 'kalori', 'protein', 'lemak'];
-	// public $fitPopulation = [0 => [0 => '000', 1 => '001'], 1 => [0 => '010', 1 => '011']]; 
-	// public $fitPopulation = [ 0 => array( 0 => 0.008732480461075, 1 => 20 ), 1 => array( 0 => 0.006762011022078, 1 => 0 ), 2 => array( 0 => 0.006381010113901, 1 => 16 ), 3 => array( 0 => 0.0062650753375309, 1 => 1 ), 4 => array( 0 => 0.0059885618468725, 1 => 12 ), 5 => array( 0 => 0.0058783763924404, 1 => 10 ), 6 => array( 0 => 0.0055436982010699, 1 => 11 ), 7 => array( 0 => 0.0050552283699416, 1 => 9 ), 8 => array( 0 => 0.0042067181288518, 1 => 19 ), 9 => array( 0 => 0.0041036584114738, 1 => 17 ) ];
-	public $fitPopulation = [];
 }
-
-		// $par = new Parameters();
-		// print_r($par->fitPopulation);
-		// array_push($par->fitPopulation, $fitTemporaryPopulation);
-		// echo "<br>pushed: "; print_r($par->fitPopulation);
-		// echo "<p></p>";
 
 class Catalogue {
 	
@@ -100,13 +90,13 @@ class Fitness {
 		$bilkecil = rand(1,5);
 		# a = jumlah kalori pada bahan makanan
 		$a = array_sum(array_column($this->selectingItems($individu), 'selectedKalori'));
-		echo "<br>a = ".$a;
+		// echo "<br>a = ".$a;
 		# b = jumlah protein pada bahan makanan
 		$b = array_sum(array_column($this->selectingItems($individu), 'selectedProtein'));
-		echo "&nbsp;b = ".$b;
+		// echo "&nbsp;b = ".$b;
 		# c = jumlah lemak pada bahan makanan
 		$c = array_sum(array_column($this->selectingItems($individu), 'selectedLemak'));
-		echo "&nbsp;c = ".$c;
+		// echo "&nbsp;c = ".$c;
 		# p = Kebutuhan Energi
 		$p = $dataPasien[0];
 		# q = Kebutuhan Protein
@@ -116,8 +106,8 @@ class Fitness {
 
 		# Fitness
 		$fitness = 1/((abs($p - $a) + abs($q - $b) + abs($r - $c)) + $bilkecil);
-		echo "&nbsp;bilkecil = ".$bilkecil;
-		echo "&nbsp;fitness = ".$fitness;
+		// echo "&nbsp;bilkecil = ".$bilkecil;
+		// echo "&nbsp;fitness = ".$fitness;
 		return $fitness;
 	}
 
@@ -158,8 +148,9 @@ class Fitness {
 
 	function isFit($fitnessValue) {
 		if ($fitnessValue >= Parameters::MIN_FIT) {
-			return TRUE;
+			return true;
 		}
+		// return true;
 	}
 
 	function fitnessEvaluation($population) {
@@ -340,11 +331,11 @@ class Selection {
 	}
 
 	function createTemporaryPopulation() {
-		echo "<br> base population: ".count($this->population)." &nbsp;";
+		// echo "<br> base population: ".count($this->population)." &nbsp;";
 		foreach($this->combinedOffspings as $offspring) {
 			$this->population[] = $offspring;
 		}
-		echo " offspring: ".count($this->combinedOffspings)." temporary: ".count($this->population);
+		// echo " offspring: ".count($this->combinedOffspings)." temporary: ".count($this->population);
 		return $this->population;
 	}
 
@@ -373,7 +364,7 @@ class Selection {
 		}
 		rsort($fitTemporaryPopulation);
 		$fitTemporaryPopulation = array_slice($fitTemporaryPopulation, 0, Parameters::POPULATION_SIZE);
-		echo "<p></p>"; print_r($fitTemporaryPopulation);
+		// echo "<p></p>"; print_r($fitTemporaryPopulation);
 
 		return $this->getVariableValue($tempPopulation, $fitTemporaryPopulation);
 	}
