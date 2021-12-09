@@ -44,7 +44,7 @@
     <div class="container">
         <?php
         ini_set("display_errors", 1);
-        require_once "config/connect.php";
+        // require_once "config/connect.php";
         #require_once "libraries/fungsi.php";
 
         if (isset($_GET['p']) == false) {
