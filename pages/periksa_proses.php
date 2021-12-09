@@ -30,15 +30,61 @@ Diet untuk penyakit gagal ginjal akut adalah :
 */
 
 # Kebutuhan Energi
-$p = $amb * $fAkt * $fSts;
+	$p = $amb * $fAkt * $fSts;
 # Kebutuhan Protein
-$q = 0.8 * $bb;
+	$q = 0.8 * $bb;
 # Kebutuhan Lemak
-$r = (25/100) * $q;
+	$r = (25/100) * $q;
+
+ /*
+a = jumlah kalori pada bahan makanan
+b = jumlah protein pada bahan makanan
+c = jumlah lemak pada bahan makanan
+bilkecil = nilai untuk menjauhi pengurangan dengan 0
+*/
 
 echo "<br/>AMB = ".$amb;
 echo "<br/>p = ".$p;
 echo "<br/>q = ".$q;
 echo "<br/>r = ".$r;
+$data = [$p, $q, $r];
+require_once 'AlgoritmaGenetika.php';
+
+
+$initialPopulation = new Population;
+$population = $initialPopulation->createRandomPopulation();
+
+$generation = 1;
+while ($generation <= 10) {
+	echo "<p></p>Generation-".$generation;
+	$crossover = new Crossover($population);
+	$crossoverOffsprings = $crossover->crossover();
+	$mutation = new Mutation($population);
+	if ($mutationOffsprings = $mutation->mutation()){
+		
+		foreach ($mutationOffsprings as $mutationOffspringKey => $mutationOffspring) {
+			$crossoverOffsprings[] = $mutationOffspring;
+			// print_r($mutationOffspring);
+		}
+	}
+	// echo "<br>init:"; print_r($population);
+	$selection = new Selection($population, $crossoverOffsprings, $data);
+	$newGenerationPopulation = $selection->selectingIndividus();
+	$population = array_replace($population, $newGenerationPopulation);
+	// echo "<br>repl:"; print_r($population);
+	$generation++;
+}
+$res = $population[0];
+echo "<p></p>"; print_r($res);
+// echo "<p></p>";
+// foreach ($res as $key => $value) {
+// 	foreach ($value as $vkey => $val) {
+// 	}
+// 		print_r($value); echo "<br>";
+// }
 
 ?>
+<form action="?p=periksaHasil_view" method="post">
+	<input type="text" name="data" value="<?= base64_encode(serialize($res)) ?>">
+	<button class="btn btn-primary btn-sm" type="submit">Hasil</button>
+</form>
