@@ -39,19 +39,19 @@ class Individu {
 		$karbo = array_slice($catalogue->bahan(), 0, 5);
 		shuffle($karbo);
 
-		$kacang = array_slice($catalogue->bahan(), 6, 5);
+		$kacang = array_slice($catalogue->bahan(), 5, 5);
 		shuffle($kacang);
 
-		$sayur = array_slice($catalogue->bahan(), 11, 5);
+		$sayur = array_slice($catalogue->bahan(), 10, 5);
 		shuffle($sayur);
 
-		$buah = array_slice($catalogue->bahan(), 16, 5);
+		$buah = array_slice($catalogue->bahan(), 15, 5);
 		shuffle($buah);
 
-		$umbi = array_slice($catalogue->bahan(), 21, 5);
+		$umbi = array_slice($catalogue->bahan(), 20, 5);
 		shuffle($umbi);
 
-		$daging = array_slice($catalogue->bahan(), 26, 5);
+		$daging = array_slice($catalogue->bahan(), 25, 5);
 		shuffle($daging);
 
 		array_push($ret, $karbo[0], $kacang[0], $sayur[0], $buah[0], $umbi[0], $daging[0]);
